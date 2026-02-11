@@ -1,8 +1,74 @@
-// تنظیمات ابر آروان
-const ARVAN_API_KEY = 'Apikey 46562664-6256-5bd3-86ef-b3f62074cd27'; 
-const ARVAN_ENDPOINT = 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions'; 
-// const ARVAN_API_KEY = 'apikey e5914c47-181d-5bb3-8719-87e8b38f03f8'; 
-// const ARVAN_ENDPOINT = 'https://arvancloudai.ir/gateway/models/Qwen3-30B-A3B/gdRq_HXqUyVGOQVf3BUAV6SkcL6JUMJ1VSaeb7iaZnefE6NtadvjvsjfHDu7hXWY2eHDHhuZAk8CyqEDlO1PMi-tO6dmFYaGYxoMLuxommubKPNclFfnfGX2yE_NhjeCQCEmf_8MM5s_RFPVGOfgpvjJTVWkSpcqAUl0EJzIc31xEx3I7fp8ndH41fGfUp8NaSyMZoz16D-xZ-h6B0rsj2cmEKbtJzfpeyHvpe4xi4SXFAHbUBrl_DjFWITe1l_b/v1'
+// مدیریت Config و API Settings
+let currentConfig = null;
+let currentAPIKey = null;
+let currentEndpoint = null;
+
+// بارگذاری اولیه Config
+async function loadConfig() {
+    try {
+        // ابتدا از storage بخوان
+        const stored = await chrome.storage.local.get(['config']);
+        if (stored.config) {
+            currentConfig = stored.config;
+            updateAPISettings();
+            return;
+        }
+
+        // اگر در storage نبود، از فایل بخوان
+        const response = await fetch(chrome.runtime.getURL('config.json'));
+        currentConfig = await response.json();
+        
+        // ذخیره در storage
+        await chrome.storage.local.set({ config: currentConfig });
+        updateAPISettings();
+    } catch (error) {
+        console.error('Error loading config:', error);
+        // Fallback به مقادیر پیش‌فرض
+        currentConfig = {
+            apiKey: 'Apikey 46562664-6256-5bd3-86ef-b3f62074cd27',
+            defaultEndpoint: 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions',
+            models: [{
+                id: 'gpt5-mini',
+                name: 'GPT-5-Mini',
+                endpoint: 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions',
+                isDefault: true
+            }]
+        };
+        updateAPISettings();
+    }
+}
+
+// به‌روزرسانی تنظیمات API بر اساس config و مدل انتخابی
+async function updateAPISettings() {
+    if (!currentConfig) return;
+
+    // دریافت مدل انتخابی کاربر
+    const stored = await chrome.storage.local.get(['selectedModelId']);
+    const selectedModelId = stored.selectedModelId;
+
+    // پیدا کردن مدل انتخابی یا پیش‌فرض
+    let selectedModel = null;
+    if (selectedModelId && currentConfig.models) {
+        selectedModel = currentConfig.models.find(m => m.id === selectedModelId);
+    }
+    
+    if (!selectedModel && currentConfig.models) {
+        selectedModel = currentConfig.models.find(m => m.isDefault) || currentConfig.models[0];
+    }
+
+    // تنظیم API Key و Endpoint
+    currentAPIKey = currentConfig.apiKey || 'Apikey 46562664-6256-5bd3-86ef-b3f62074cd27';
+    currentEndpoint = selectedModel ? selectedModel.endpoint : (currentConfig.defaultEndpoint || 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions');
+
+    console.log('API Settings updated:', {
+        apiKey: currentAPIKey.substring(0, 20) + '...',
+        endpoint: currentEndpoint.substring(0, 50) + '...',
+        model: selectedModel ? selectedModel.name : 'default'
+    });
+}
+
+// بارگذاری اولیه
+loadConfig();
 
 // اعتبارسنجی payload
 function validatePayload(payload) {
@@ -41,6 +107,26 @@ function validatePayload(payload) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    // مدیریت reload config
+    if (request.action === "reloadConfig") {
+        loadConfig().then(() => {
+            sendResponse({ success: true, message: 'Config reloaded' });
+        }).catch(err => {
+            sendResponse({ success: false, error: err.message });
+        });
+        return true;
+    }
+
+    // مدیریت تغییر مدل
+    if (request.action === "modelChanged") {
+        updateAPISettings().then(() => {
+            sendResponse({ success: true, message: 'Model changed' });
+        }).catch(err => {
+            sendResponse({ success: false, error: err.message });
+        });
+        return true;
+    }
+
     if (request.action === "processText") {
         // اعتبارسنجی اولیه
         try {
@@ -237,12 +323,19 @@ async function processWithArvan(payload) {
         userContent = `موضوع فعلی: ${payload.subject || 'ندارد'}\nگیرنده فعلی: ${payload.receiver || 'ندارد'}\nمتن اصلی:\n${payload.text}`;
     }
 
+    // اطمینان از اینکه API settings به‌روز هستند
+    await updateAPISettings();
+    
+    if (!currentAPIKey || !currentEndpoint) {
+        throw new Error('تنظیمات API یافت نشد. لطفاً در popup تنظیمات را بررسی کنید.');
+    }
+
     try {
-        const response = await fetch(ARVAN_ENDPOINT, {
+        const response = await fetch(currentEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': ARVAN_API_KEY, 
+                'Authorization': currentAPIKey, 
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
@@ -360,12 +453,19 @@ async function generateReply(payload) {
 
     const userContent = `لطفاً یک پاسخ رسمی و اداری به نامه بالا بر اساس متن عامیانه زیر بساز:\n${payload.replyText}`;
 
+    // اطمینان از اینکه API settings به‌روز هستند
+    await updateAPISettings();
+    
+    if (!currentAPIKey || !currentEndpoint) {
+        throw new Error('تنظیمات API یافت نشد. لطفاً در popup تنظیمات را بررسی کنید.');
+    }
+
     try {
-        const response = await fetch(ARVAN_ENDPOINT, {
+        const response = await fetch(currentEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': ARVAN_API_KEY, 
+                'Authorization': currentAPIKey, 
                 'Accept': 'application/json'
             },
             body: JSON.stringify({

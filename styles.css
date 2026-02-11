@@ -546,7 +546,7 @@ i[class*="mce-i-"],
 
 .ai-reply-input,
 .ai-reply-textarea {
-    width: 100%;
+    width: 80%;
     padding: 10px 14px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -574,7 +574,7 @@ i[class*="mce-i-"],
 
 .ai-reply-input::placeholder,
 .ai-reply-textarea::placeholder {
-    color: #9ca3af;
+    color: #2b0551;
 }
 
 .ai-select-modal {

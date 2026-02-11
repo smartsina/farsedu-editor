@@ -126,47 +126,74 @@ observer.observe(document.body, { childList: true, subtree: true });
 injectAIButton();
 
 // تابع خواندن از کلیپبورد با چند روش مختلف
-async function pasteFromClipboard() {
-    // روش 1: Clipboard API (مدرن)
+async function pasteFromClipboard(targetElement) {
+    // روش 1: Clipboard API (مدرن - فقط در HTTPS)
     try {
         if (navigator.clipboard && navigator.clipboard.readText) {
-            const text = await navigator.clipboard.readText();
-            if (text) return text;
+            // بررسی اینکه آیا در HTTPS هستیم یا نه
+            if (window.isSecureContext || location.protocol === 'https:') {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim().length > 0) {
+                    return text;
+                }
+            }
         }
     } catch (err) {
-        console.log('Clipboard API failed, trying fallback:', err);
+        console.log('Clipboard API failed:', err.message);
     }
     
-    // روش 2: execCommand (قدیمی اما سازگار)
+    // روش 2: استفاده از textarea موجود و execCommand
+    if (targetElement) {
+        try {
+            // Focus روی textarea
+            targetElement.focus();
+            targetElement.select();
+            
+            // استفاده از execCommand با user gesture
+            const success = document.execCommand('paste');
+            
+            // اگر موفق بود، متن را برمی‌گردانیم
+            if (success && targetElement.value && targetElement.value.trim().length > 0) {
+                return targetElement.value;
+            }
+        } catch (err) {
+            console.log('execCommand paste failed:', err);
+        }
+    }
+    
+    // روش 3: ایجاد textarea موقت و paste
     try {
         const textarea = document.createElement('textarea');
         textarea.style.position = 'fixed';
         textarea.style.top = '0';
         textarea.style.left = '0';
-        textarea.style.width = '1px';
-        textarea.style.height = '1px';
+        textarea.style.width = '2px';
+        textarea.style.height = '2px';
         textarea.style.padding = '0';
         textarea.style.border = 'none';
         textarea.style.outline = 'none';
-        textarea.style.boxShadow = 'none';
-        textarea.style.background = 'transparent';
+        textarea.style.opacity = '0';
+        textarea.style.pointerEvents = 'none';
+        textarea.setAttribute('readonly', '');
         document.body.appendChild(textarea);
+        
         textarea.focus();
         textarea.select();
         
+        // استفاده از execCommand
         const success = document.execCommand('paste');
         const text = textarea.value;
         document.body.removeChild(textarea);
         
-        if (text && text.length > 0) {
+        if (success && text && text.trim().length > 0) {
             return text;
         }
     } catch (err) {
-        console.log('execCommand paste failed:', err);
+        console.log('Temporary textarea paste failed:', err);
     }
     
-    // اگر هیچ روشی کار نکرد
-    throw new Error('لطفاً با Ctrl+V یا کلیک راست > Paste، متن را وارد کنید.');
+    // اگر هیچ روشی کار نکرد، null برمی‌گردانیم تا UI راهنمایی کند
+    return null;
 }
 
 // تابع باز کردن مودال پاسخ به نامه
@@ -257,22 +284,70 @@ function openReplyModal() {
     });
 
     // دکمه Paste فقط برای متن نامه اصلی
-    pasteBtn.addEventListener('click', async () => {
+    pasteBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const textArea = document.getElementById('ai-reply-original-text');
+        if (!textArea) return;
+        
+        // Focus روی textarea
+        textArea.focus();
+        textArea.select();
+        
         try {
-            const text = await pasteFromClipboard();
+            // تلاش برای paste با استفاده از Clipboard API یا execCommand
+            const text = await pasteFromClipboard(textArea);
+            
             if (text && text.trim().length > 0) {
                 textArea.value = text;
+                textArea.dispatchEvent(new Event('input', { bubbles: true }));
                 showNotification('✅ متن از کلیپبورد paste شد', 'success');
-            } else {
-                throw new Error('کلیپبورد خالی است');
+                return;
             }
         } catch (err) {
-            console.error('Paste error:', err);
-            // راهنمایی برای کاربر
-            textArea.focus();
-            showNotification('💡 لطفاً متن را کپی کنید، سپس در کادر متن کلیک کنید و Ctrl+V را بزنید', 'info');
+            console.log('Auto paste failed, waiting for manual paste:', err.message);
         }
+        
+        // اگر paste خودکار کار نکرد، منتظر می‌مانیم تا کاربر Ctrl+V بزند
+        let pasteHandler = null;
+        let timeoutId = null;
+        
+        const cleanup = () => {
+            if (pasteHandler) {
+                textArea.removeEventListener('paste', pasteHandler);
+                pasteHandler = null;
+            }
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        
+        // Event listener برای paste event
+        pasteHandler = (event) => {
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            if (pastedText && pastedText.trim().length > 0) {
+                textArea.value = pastedText;
+                textArea.dispatchEvent(new Event('input', { bubbles: true }));
+                showNotification('✅ متن paste شد', 'success');
+                cleanup();
+            }
+        };
+        
+        textArea.addEventListener('paste', pasteHandler);
+        
+        // Timeout بعد از 10 ثانیه
+        timeoutId = setTimeout(() => {
+            cleanup();
+            if (textArea.value.trim().length === 0) {
+                showNotification('💡 لطفاً متن را کپی کرده و Ctrl+V را در کادر بالا بزنید', 'info');
+            }
+        }, 10000);
+        
+        // راهنمایی فوری
+        showNotification('💡 لطفاً Ctrl+V را بزنید تا متن paste شود', 'info');
     });
 
     // رویداد ساخت پاسخ

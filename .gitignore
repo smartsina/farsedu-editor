@@ -1,0 +1,13 @@
+# فایل‌های حساس که نباید در Git باشند
+config.json
+users.txt
+
+# فایل‌های سیستم
+.DS_Store
+*.log
+
+# فایل‌های IDE
+.vscode/
+.idea/
+*.swp
+*.swo

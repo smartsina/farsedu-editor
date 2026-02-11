@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنظیمات افزونه FarsEdu AI</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <!-- صفحه Login -->
+    <div id="login-page" class="page active">
+        <div class="header">
+            <h2>🔐 ورود به سیستم</h2>
+        </div>
+        <div class="content">
+            <div class="form-group">
+                <label for="username">نام کاربری:</label>
+                <input type="text" id="username" placeholder="نام کاربری خود را وارد کنید" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">رمز عبور:</label>
+                <input type="password" id="password" placeholder="رمز عبور خود را وارد کنید" autocomplete="current-password">
+            </div>
+            <div id="login-error" class="error-message" style="display: none;"></div>
+            <button id="login-btn" class="btn btn-primary">ورود</button>
+        </div>
+    </div>
+
+    <!-- صفحه Settings (فقط برای Admin) -->
+    <div id="admin-page" class="page">
+        <div class="header">
+            <h2>⚙️ تنظیمات ادمین</h2>
+            <button id="logout-btn" class="btn-logout">خروج</button>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="models">مدل‌ها</button>
+            <button class="tab-btn" data-tab="api">API</button>
+        </div>
+        
+        <!-- تب مدل‌ها -->
+        <div id="models-tab" class="tab-content active">
+            <div class="section">
+                <h3>افزودن مدل جدید</h3>
+                <div class="form-group">
+                    <label for="model-name">نام مدل:</label>
+                    <input type="text" id="model-name" placeholder="مثال: GPT-5-Mini">
+                </div>
+                <div class="form-group">
+                    <label for="model-endpoint">Endpoint:</label>
+                    <textarea id="model-endpoint" rows="3" placeholder="آدرس کامل endpoint مدل را وارد کنید"></textarea>
+                </div>
+                <button id="add-model-btn" class="btn btn-success">افزودن مدل</button>
+            </div>
+            
+            <div class="section">
+                <h3>مدل‌های موجود</h3>
+                <div id="models-list" class="models-list">
+                    <!-- مدل‌ها اینجا نمایش داده می‌شوند -->
+                </div>
+            </div>
+        </div>
+
+        <!-- تب API -->
+        <div id="api-tab" class="tab-content">
+            <div class="section">
+                <h3>تنظیمات API</h3>
+                <div class="form-group">
+                    <label for="api-key">API Key:</label>
+                    <input type="text" id="api-key" placeholder="API Key را وارد کنید">
+                </div>
+                <div class="form-group">
+                    <label for="default-endpoint">Endpoint پیش‌فرض:</label>
+                    <textarea id="default-endpoint" rows="3" placeholder="Endpoint پیش‌فرض را وارد کنید"></textarea>
+                </div>
+                <button id="save-api-btn" class="btn btn-primary">ذخیره تنظیمات API</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- صفحه کاربر عادی -->
+    <div id="user-page" class="page">
+        <div class="header">
+            <h2>🤖 انتخاب مدل</h2>
+            <button id="user-logout-btn" class="btn-logout">خروج</button>
+        </div>
+        <div class="content">
+            <div class="form-group">
+                <label for="model-select">مدل مورد نظر:</label>
+                <select id="model-select" class="select-model">
+                    <option value="">در حال بارگذاری...</option>
+                </select>
+            </div>
+            <div id="current-model-info" class="info-box">
+                <p><strong>مدل فعلی:</strong> <span id="current-model-name">-</span></p>
+            </div>
+            <button id="save-model-btn" class="btn btn-primary">ذخیره انتخاب</button>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
