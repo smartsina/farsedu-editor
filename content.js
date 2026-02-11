@@ -197,7 +197,13 @@ async function pasteFromClipboard(targetElement) {
 }
 
 // تابع باز کردن مودال پاسخ به نامه
-function openReplyModal() {
+async function openReplyModal() {
+    // چک کردن احراز هویت
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
+        return;
+    }
+
     const subjectInput = document.getElementById('DocSubject');
     const receiverInput = document.getElementById('be');
     const originalSubject = subjectInput ? subjectInput.value.trim() : '';
@@ -490,8 +496,30 @@ function openReplyModal() {
     });
 }
 
+// چک کردن احراز هویت
+async function checkAuthentication() {
+    try {
+        const result = await chrome.storage.local.get(['isAuthenticated', 'currentUser']);
+        if (!result.isAuthenticated || !result.currentUser) {
+            showNotification('⚠️ لطفاً ابتدا وارد سیستم شوید. روی آیکون افزونه کلیک کنید و با نام کاربری و رمز عبور خود وارد شوید.', 'warning');
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        showNotification('⚠️ خطا در بررسی احراز هویت. لطفاً دوباره تلاش کنید.', 'error');
+        return false;
+    }
+}
+
 // تابع اصلی ارسال درخواست
 async function handleAIRequest(mode) {
+    // چک کردن احراز هویت
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
+        return;
+    }
+
     let targetElement = null;
     let visualElement = null;
     let text = "";

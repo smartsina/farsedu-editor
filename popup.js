@@ -201,24 +201,41 @@ function loadModelsList() {
         modelItem.innerHTML = `
             <div class="model-info">
                 <div class="model-name">${model.name} ${model.isDefault ? '(پیش‌فرض)' : ''}</div>
-                <div class="model-endpoint">${model.endpoint.substring(0, 60)}...</div>
+                <div class="model-endpoint">API Model: ${model.modelName || 'DeepSeek-R1-qwen-7b-awq'}</div>
+                <div class="model-endpoint" style="font-size: 10px; margin-top: 4px;">${model.endpoint.substring(0, 60)}...</div>
             </div>
             <div class="model-actions">
-                ${!model.isDefault ? `<button class="btn btn-small btn-default" onclick="setDefaultModel(${index})">تنظیم پیش‌فرض</button>` : ''}
-                <button class="btn btn-small btn-danger" onclick="deleteModel(${index})">حذف</button>
+                ${!model.isDefault ? `<button class="btn btn-small btn-default set-default-btn" data-index="${index}">تنظیم پیش‌فرض</button>` : ''}
+                <button class="btn btn-small btn-danger delete-model-btn" data-index="${index}">حذف</button>
             </div>
         `;
         modelsList.appendChild(modelItem);
+    });
+
+    // اضافه کردن event listener ها
+    modelsList.querySelectorAll('.set-default-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            setDefaultModel(index);
+        });
+    });
+
+    modelsList.querySelectorAll('.delete-model-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            deleteModel(index);
+        });
     });
 }
 
 // افزودن مدل جدید
 async function addModel() {
     const name = document.getElementById('model-name').value.trim();
+    const modelNameApi = document.getElementById('model-name-api').value.trim();
     const endpoint = document.getElementById('model-endpoint').value.trim();
 
     if (!name || !endpoint) {
-        showError('لطفاً نام و endpoint مدل را وارد کنید');
+        showError('لطفاً نام مدل و endpoint را وارد کنید');
         return;
     }
 
@@ -227,10 +244,23 @@ async function addModel() {
         config.models = [];
     }
 
+    // اطمینان از اینکه endpoint شامل /chat/completions است
+    let fullEndpoint = endpoint.trim();
+    if (!fullEndpoint.endsWith('/chat/completions')) {
+        if (fullEndpoint.endsWith('/v1')) {
+            fullEndpoint = fullEndpoint + '/chat/completions';
+        } else if (!fullEndpoint.endsWith('/')) {
+            fullEndpoint = fullEndpoint + '/chat/completions';
+        } else {
+            fullEndpoint = fullEndpoint + 'chat/completions';
+        }
+    }
+
     const newModel = {
         id: `model-${Date.now()}`,
         name: name,
-        endpoint: endpoint,
+        modelName: modelNameApi || 'DeepSeek-R1-qwen-7b-awq',
+        endpoint: fullEndpoint,
         isDefault: config.models.length === 0
     };
 
@@ -241,6 +271,7 @@ async function addModel() {
 
     // پاک کردن فیلدها
     document.getElementById('model-name').value = '';
+    document.getElementById('model-name-api').value = '';
     document.getElementById('model-endpoint').value = '';
 
     // بارگذاری مجدد لیست

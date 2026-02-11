@@ -42,12 +42,16 @@
             <div class="section">
                 <h3>افزودن مدل جدید</h3>
                 <div class="form-group">
-                    <label for="model-name">نام مدل:</label>
-                    <input type="text" id="model-name" placeholder="مثال: GPT-5-Mini">
+                    <label for="model-name">نام مدل (نمایشی):</label>
+                    <input type="text" id="model-name" placeholder="مثال: Qwen3-30B-A3B">
+                </div>
+                <div class="form-group">
+                    <label for="model-name-api">نام مدل در API:</label>
+                    <input type="text" id="model-name-api" placeholder="مثال: DeepSeek-R1-qwen-7b-awq">
                 </div>
                 <div class="form-group">
                     <label for="model-endpoint">Endpoint:</label>
-                    <textarea id="model-endpoint" rows="3" placeholder="آدرس کامل endpoint مدل را وارد کنید"></textarea>
+                    <textarea id="model-endpoint" rows="3" placeholder="آدرس کامل endpoint مدل را وارد کنید (بدون /chat/completions)"></textarea>
                 </div>
                 <button id="add-model-btn" class="btn btn-success">افزودن مدل</button>
             </div>

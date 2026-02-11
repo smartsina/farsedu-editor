@@ -2,6 +2,7 @@
 let currentConfig = null;
 let currentAPIKey = null;
 let currentEndpoint = null;
+let currentModelName = null;
 
 // بارگذاری اولیه Config
 async function loadConfig() {
@@ -25,12 +26,13 @@ async function loadConfig() {
         console.error('Error loading config:', error);
         // Fallback به مقادیر پیش‌فرض
         currentConfig = {
-            apiKey: 'Apikey 46562664-6256-5bd3-86ef-b3f62074cd27',
-            defaultEndpoint: 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions',
+            apiKey: 'apikey 7b2d8295-3f2d-5259-9b6c-3272d8821bd3',
+            defaultEndpoint: 'https://arvancloudai.ir/gateway/models/Qwen3-30B-A3B/gdRq_HXqUyVGOQVf3BUAV6SkcL6JUMJ1VSaeb7iaZnefE6NtadvjvsjfHDu7hXWY2eHDHhuZAk8CyqEDlO1PMi-tO6dmFYaGYxoMLuxommubKPNclFfnfGX2yE_NhjeCQCEmf_8MM5s_RFPVGOfgpvjJTVWkSpcqAUl0EJzIc31xEx3I7fp8ndH41fGfUp8NaSyMZoz16D-xZ-h6B0rsj2cmEKbtJzfpeyHvpe4xi4SXFAHbUBrl_DjFWITe1l_b/v1/chat/completions',
             models: [{
-                id: 'gpt5-mini',
-                name: 'GPT-5-Mini',
-                endpoint: 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions',
+                id: 'qwen3-30b',
+                name: 'Qwen3-30B-A3B',
+                modelName: 'DeepSeek-R1-qwen-7b-awq',
+                endpoint: 'https://arvancloudai.ir/gateway/models/Qwen3-30B-A3B/gdRq_HXqUyVGOQVf3BUAV6SkcL6JUMJ1VSaeb7iaZnefE6NtadvjvsjfHDu7hXWY2eHDHhuZAk8CyqEDlO1PMi-tO6dmFYaGYxoMLuxommubKPNclFfnfGX2yE_NhjeCQCEmf_8MM5s_RFPVGOfgpvjJTVWkSpcqAUl0EJzIc31xEx3I7fp8ndH41fGfUp8NaSyMZoz16D-xZ-h6B0rsj2cmEKbtJzfpeyHvpe4xi4SXFAHbUBrl_DjFWITe1l_b/v1/chat/completions',
                 isDefault: true
             }]
         };
@@ -57,13 +59,28 @@ async function updateAPISettings() {
     }
 
     // تنظیم API Key و Endpoint
-    currentAPIKey = currentConfig.apiKey || 'Apikey 46562664-6256-5bd3-86ef-b3f62074cd27';
-    currentEndpoint = selectedModel ? selectedModel.endpoint : (currentConfig.defaultEndpoint || 'https://arvancloudai.ir/gateway/models/GPT-5-Mini/CW3t1ybpkcryoDkh8hLI-6HVO5y8-6yd4ZeFpRdfczKrIcLCUaEtojoRY8FTcMJ_eMiEXF0oW2aczwYAIwmPZarLg_KgsB2OoYrS1vsRPKVQiQzc_u1MMC5waH3vSlVwKG9ejm8qUUNobWV8j1qXppp_edS7bhA5YatsYIduYkBHdoIy9OqnZY_eD0Z-4FQoz5pmTYybzl34s4uOjzUswEar-FCgzcZPFy8okGPfuY7jUHzh9hfe4wAg/v1/chat/completions');
+    currentAPIKey = currentConfig.apiKey || 'apikey 7b2d8295-3f2d-5259-9b6c-3272d8821bd3';
+    currentEndpoint = selectedModel ? selectedModel.endpoint : (currentConfig.defaultEndpoint || 'https://arvancloudai.ir/gateway/models/Qwen3-30B-A3B/gdRq_HXqUyVGOQVf3BUAV6SkcL6JUMJ1VSaeb7iaZnefE6NtadvjvsjfHDu7hXWY2eHDHhuZAk8CyqEDlO1PMi-tO6dmFYaGYxoMLuxommubKPNclFfnfGX2yE_NhjeCQCEmf_8MM5s_RFPVGOfgpvjJTVWkSpcqAUl0EJzIc31xEx3I7fp8ndH41fGfUp8NaSyMZoz16D-xZ-h6B0rsj2cmEKbtJzfpeyHvpe4xi4SXFAHbUBrl_DjFWITe1l_b/v1/chat/completions');
+    
+    // تنظیم modelName برای استفاده در request
+    currentModelName = selectedModel ? (selectedModel.modelName || 'DeepSeek-R1-qwen-7b-awq') : 'DeepSeek-R1-qwen-7b-awq';
+    
+    // اطمینان از اینکه endpoint شامل /chat/completions است
+    if (currentEndpoint && !currentEndpoint.endsWith('/chat/completions')) {
+        if (currentEndpoint.endsWith('/v1')) {
+            currentEndpoint = currentEndpoint + '/chat/completions';
+        } else if (!currentEndpoint.endsWith('/')) {
+            currentEndpoint = currentEndpoint + '/chat/completions';
+        } else {
+            currentEndpoint = currentEndpoint + 'chat/completions';
+        }
+    }
 
     console.log('API Settings updated:', {
         apiKey: currentAPIKey.substring(0, 20) + '...',
         endpoint: currentEndpoint.substring(0, 50) + '...',
-        model: selectedModel ? selectedModel.name : 'default'
+        model: selectedModel ? selectedModel.name : 'default',
+        modelName: currentModelName
     });
 }
 
@@ -339,13 +356,13 @@ async function processWithArvan(payload) {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                model: "GPT-5-Mini",
+                model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
                 messages: [
                     {"role": "system", "content": systemInstruction},
                     {"role": "user", "content": userContent}
                 ],
                 temperature: payload.mode === 'grammar' ? 0.1 : (payload.mode === 'smart' ? 0.6 : 0.5),
-                max_tokens: 2000
+                max_tokens: 3000
             })
         });
 
@@ -469,13 +486,13 @@ async function generateReply(payload) {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                model: "GPT-5-Mini",
+                model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
                 messages: [
                     {"role": "system", "content": systemInstruction},
                     {"role": "user", "content": userContent}
                 ],
                 temperature: 0.6,
-                max_tokens: 2000
+                max_tokens: 3000
             })
         });
 
