@@ -1,9 +1,14 @@
 /* فونت‌بندی فارسی بهینه */
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
 
-/* فونت BKoodak */
-body, * {
-    font-family: 'BKoodakBd', 'Vazirmatn', 'B Koodak', 'Tahoma', sans-serif !important;
+/* فونت BKoodak برای متن‌ها */
+body, button, input, select, textarea, .mce-content-body {
+    font-family: 'BKoodakBd', 'Vazirmatn', 'B Koodak', 'Tahoma', sans-serif;
+}
+
+/* جلوگیری از تغییر فونت آیکون‌ها */
+.mce-ico, .mce-i-none, [class^="mce-i-"], [class*=" mce-i-"] {
+    font-family: 'tinymce', Arial, sans-serif !important;
 }
 
 /* ===== کانتینر اصلی نوار ابزار ===== */
@@ -614,6 +619,14 @@ body, * {
 .mce-btn .mce-txt,
 .mce-menubtn .mce-txt {
     font-family: 'BKoodakBd', 'Vazirmatn', sans-serif !important;
+}
+
+/* اطمینان از عدم تغییر فونت آیکون‌ها داخل دکمه‌ها */
+.mce-btn i,
+.mce-menubtn i,
+.mce-splitbtn i,
+.mce-ico {
+    font-family: 'tinymce', Arial, sans-serif !important;
 }
 
 /* ===== حالت disabled ===== */
