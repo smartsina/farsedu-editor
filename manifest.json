@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "دستیار هوشمند اتوماسیون فارس (FarsEdu)",
+  "version": "2.4",
+  "description": "ویرایشگر هوشمند نامه‌های اداری با استفاده از هوش مصنوعی ابر آروان - نسخه اصلاح شده",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": [
+    "http://auto.farsedu.ir/*",
+    "https://auto.farsedu.ir/*",
+    "http://auto1.farsedu.ir/*",
+    "https://auto1.farsedu.ir/*",
+    "http://auto2.farsedu.ir/*",
+    "https://auto2.farsedu.ir/*",
+    "http://auto3.farsedu.ir/*",
+    "https://auto3.farsedu.ir/*",
+    "http://auto4.farsedu.ir/*",
+    "https://auto4.farsedu.ir/*",
+    "http://dolat.auto.farsedu.ir/*",
+    "https://dolat.auto.farsedu.ir/*",
+    "https://*.arvancloud.ir/*",
+    "https://*.arvancloud.com/*",
+    "https://*.arvancloudai.ir/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://auto.farsedu.ir/*",
+        "https://auto.farsedu.ir/*",
+        "http://auto1.farsedu.ir/*",
+        "https://auto1.farsedu.ir/*",
+        "http://auto2.farsedu.ir/*",
+        "https://auto2.farsedu.ir/*",
+        "http://auto3.farsedu.ir/*",
+        "https://auto3.farsedu.ir/*",
+        "http://auto4.farsedu.ir/*",
+        "https://auto4.farsedu.ir/*",
+        "http://dolat.auto.farsedu.ir/*",
+        "https://dolat.auto.farsedu.ir/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["BKoodkBd.ttf"],
+      "matches": [
+        "http://auto.farsedu.ir/*",
+        "https://auto.farsedu.ir/*",
+        "http://auto1.farsedu.ir/*",
+        "https://auto1.farsedu.ir/*",
+        "http://auto2.farsedu.ir/*",
+        "https://auto2.farsedu.ir/*",
+        "http://auto3.farsedu.ir/*",
+        "https://auto3.farsedu.ir/*",
+        "http://auto4.farsedu.ir/*",
+        "https://auto4.farsedu.ir/*",
+        "http://dolat.auto.farsedu.ir/*",
+        "https://dolat.auto.farsedu.ir/*"
+      ]
+    }
+  ]
+}

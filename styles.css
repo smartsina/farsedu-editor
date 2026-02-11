@@ -1,0 +1,691 @@
+/* فونت‌بندی فارسی بهینه */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+/* فونت BKoodak */
+body, * {
+    font-family: 'BKoodakBd', 'Vazirmatn', 'B Koodak', 'Tahoma', sans-serif !important;
+}
+
+/* ===== کانتینر اصلی نوار ابزار ===== */
+.ai-toolbar-group {
+    margin-right: 8px;
+    display: inline-flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    background: #f9fafb;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    vertical-align: top;
+    direction: rtl;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.ai-toolbar-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ===== استایل دکمه‌های AI ===== */
+.ai-btn {
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 0 10px !important;
+    height: 28px !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    color: white !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* دکمه هوشمند */
+.ai-btn-smart {
+    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%) !important;
+}
+
+/* دکمه پاسخ */
+.ai-btn-reply {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+/* افکت Hover */
+.ai-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.ai-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* استایل آیکون و متن */
+.ai-icon {
+    font-style: normal;
+    font-size: 14px;
+    line-height: 1;
+    display: inline-block;
+}
+
+.ai-btn-text {
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* ===== منوی کشویی ===== */
+.ai-select {
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0 8px;
+    outline: none;
+    cursor: pointer;
+    background: white;
+    color: #374151;
+    transition: all 0.2s ease;
+    direction: rtl;
+    text-align: right;
+}
+
+.ai-select:hover {
+    border-color: #8b5cf6;
+    box-shadow: 0 1px 3px rgba(139, 92, 246, 0.1);
+}
+
+.ai-select:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
+/* ===== جداکننده ===== */
+.ai-separator {
+    width: 1px;
+    height: 20px;
+    background: #e5e7eb;
+    margin: 0 2px;
+}
+
+/* ===== حالت بارگذاری ===== */
+.ai-btn-loading {
+    pointer-events: none;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ai-loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* ===== انیمیشن Apple Intelligence ===== */
+@keyframes ai-gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes ai-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.02);
+        opacity: 1;
+    }
+}
+
+.ai-active-mode {
+    position: relative !important;
+    transition: all 0.4s ease;
+    animation: ai-pulse 2s ease-in-out infinite;
+}
+
+/* لایه درخشان متحرک - Border Glow */
+.ai-active-mode::before {
+    content: "";
+    position: absolute;
+    top: -6px; left: -6px; right: -6px; bottom: -6px;
+    background: linear-gradient(
+        60deg,
+        #ff6b6b 0%,
+        #ff8e53 14%,
+        #ffa726 28%,
+        #66bb6a 42%,
+        #42a5f5 56%,
+        #ab47bc 70%,
+        #ec4899 84%,
+        #ff6b6b 100%
+    );
+    background-size: 400% 400%;
+    z-index: -2;
+    border-radius: 12px;
+    animation: ai-gradient-flow 4s ease infinite;
+    filter: blur(12px);
+    opacity: 0.9;
+}
+
+/* لایه Overlay شفاف */
+.ai-active-mode::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 107, 107, 0.08) 0%,
+        rgba(255, 142, 83, 0.08) 16%,
+        rgba(255, 167, 38, 0.08) 32%,
+        rgba(102, 187, 106, 0.08) 48%,
+        rgba(66, 165, 245, 0.08) 64%,
+        rgba(171, 71, 188, 0.08) 80%,
+        rgba(255, 107, 107, 0.08) 100%
+    );
+    background-size: 300% 300%;
+    animation: ai-gradient-flow 6s ease infinite;
+    z-index: -1;
+    border-radius: 8px;
+    box-shadow: 
+        inset 0 0 40px rgba(139, 92, 246, 0.1),
+        0 0 60px rgba(139, 92, 246, 0.2);
+}
+
+/* ===== پارتیکل‌های نورانی Apple Intelligence ===== */
+.ai-particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 999;
+}
+
+@keyframes float-particle {
+    0% {
+        transform: translateY(100%) translateX(0) scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(50%) translateX(20px) scale(1.2) rotate(180deg);
+        opacity: 1;
+    }
+    90% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-20%) translateX(-10px) scale(0.8) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes float-particle-glow {
+    0%, 100% {
+        box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    }
+    50% {
+        box-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
+    }
+}
+
+.ai-particle {
+    position: absolute;
+    bottom: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: 
+        float-particle 3s ease-in-out infinite,
+        float-particle-glow 2s ease-in-out infinite;
+    filter: blur(1px);
+}
+
+/* ===== سیستم نوتیفیکیشن ===== */
+.ai-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    z-index: 999999;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    padding: 14px 20px;
+    min-width: 280px;
+    max-width: 450px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    border: 2px solid;
+    direction: rtl;
+}
+
+.ai-notification-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.ai-notification-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ai-notification-text {
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.ai-notification-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #6b7280;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.ai-notification-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #1f2937;
+}
+
+/* انواع نوتیفیکیشن */
+.ai-notification-success {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
+.ai-notification-success .ai-notification-text {
+    color: #065f46;
+}
+
+.ai-notification-error {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.ai-notification-error .ai-notification-text {
+    color: #991b1b;
+}
+
+.ai-notification-warning {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.ai-notification-warning .ai-notification-text {
+    color: #92400e;
+}
+
+.ai-notification-info {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.ai-notification-info .ai-notification-text {
+    color: #1e40af;
+}
+
+/* ===== مودال پاسخ به نامه ===== */
+.ai-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+    direction: rtl;
+}
+
+.ai-modal-overlay.ai-modal-show {
+    opacity: 1;
+}
+
+.ai-modal-content {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+    border: 1px solid #d1d5db;
+}
+
+.ai-modal-overlay.ai-modal-show .ai-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.ai-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.ai-modal-header h3 {
+    margin: 0;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.ai-modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.ai-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.ai-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    background: #ffffff;
+}
+
+.ai-reply-section {
+    margin-bottom: 20px;
+}
+
+.ai-reply-section:last-child {
+    margin-bottom: 0;
+}
+
+.ai-label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+}
+
+.ai-reply-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.ai-reply-half {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* کانتینر input با دکمه paste */
+.ai-input-with-paste {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.ai-input-with-paste .ai-reply-textarea {
+    flex: 1;
+}
+
+.ai-paste-btn {
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    height: fit-content;
+    margin-top: 0;
+}
+
+.ai-paste-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ai-reply-input,
+.ai-reply-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    resize: vertical;
+    transition: all 0.2s;
+    background: white;
+    color: #1f2937;
+    direction: rtl;
+    text-align: right;
+}
+
+.ai-reply-input:focus,
+.ai-reply-textarea:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
+.ai-reply-textarea {
+    min-height: 100px;
+    line-height: 1.6;
+}
+
+.ai-reply-input::placeholder,
+.ai-reply-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.ai-select-modal {
+    width: 100%;
+    height: 38px;
+    font-size: 12px;
+}
+
+.ai-modal-footer {
+    padding: 18px 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #f9fafb;
+}
+
+.ai-btn-secondary {
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #6b7280;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ai-btn-secondary:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+/* ===== استایل یکپارچه برای دکمه‌های TinyMCE ===== */
+/* فقط استایل کانتینر و background - بدون تغییر font-icon */
+.mce-toolbar .mce-btn-group {
+    background: #f9fafb;
+    border-radius: 4px;
+    padding: 2px;
+    margin: 2px;
+    border: 1px solid #e5e7eb;
+}
+
+.mce-btn,
+.mce-menubtn,
+.mce-splitbtn {
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+}
+
+.mce-btn:hover,
+.mce-menubtn:hover,
+.mce-splitbtn:hover {
+    background: #f3f4f6 !important;
+}
+
+.mce-btn button,
+.mce-menubtn button,
+.mce-splitbtn button {
+    transition: all 0.2s ease !important;
+}
+
+/* استایل متن فارسی در دکمه‌های TinyMCE */
+.mce-btn .mce-txt,
+.mce-menubtn .mce-txt {
+    font-family: 'BKoodakBd', 'Vazirmatn', sans-serif !important;
+}
+
+/* ===== حالت disabled ===== */
+.ai-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ===== ریسپانسیو ===== */
+@media screen and (max-width: 768px) {
+    .ai-toolbar-group {
+        flex-direction: column;
+        width: 100%;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .ai-btn {
+        width: 100%;
+        height: 36px !important;
+        font-size: 12px !important;
+    }
+
+    .ai-select {
+        width: 100%;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .ai-separator {
+        width: 100%;
+        height: 1px;
+        margin: 4px 0;
+    }
+
+    .ai-modal-content {
+        max-width: 100%;
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .ai-reply-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ai-input-with-paste {
+        flex-direction: column;
+    }
+
+    .ai-paste-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* بهینه‌سازی برای Windows Chrome */
+@supports (-webkit-appearance:none) {
+    .ai-btn,
+    .ai-select,
+    .ai-reply-input,
+    .ai-reply-textarea {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* RTL Support */
+[dir="rtl"] .ai-toolbar-group,
+[dir="rtl"] .ai-btn,
+[dir="rtl"] .ai-select {
+    direction: rtl;
+    text-align: right;
+}
