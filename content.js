@@ -1,3 +1,11 @@
+// Cache برای authentication
+let authCache = {
+    isAuthenticated: false,
+    currentUser: null,
+    lastCheck: 0,
+    cacheTimeout: 30000 // 30 ثانیه
+};
+
 // لود فونت BKoodkBd
 (function loadFont() {
     const fontUrl = chrome.runtime.getURL('BKoodkBd.ttf');
@@ -13,6 +21,21 @@
         console.log('خطا در لود فونت:', err);
     });
 })();
+
+// گوش دادن به تغییرات authentication در storage
+if (chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'local') {
+            if (changes.isAuthenticated || changes.currentUser) {
+                // Reset cache
+                authCache.isAuthenticated = false;
+                authCache.currentUser = null;
+                authCache.lastCheck = 0;
+                console.log('Auth cache cleared due to storage change:', changes);
+            }
+        }
+    });
+}
 
 // فعال کردن کلیک راست در سایت
 (function enableRightClick() {
@@ -496,19 +519,73 @@ async function openReplyModal() {
     });
 }
 
+// Helper function برای خواندن از storage با Promise
+function getStorageData(keys) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(keys, (result) => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
+
 // چک کردن احراز هویت
 async function checkAuthentication() {
+    const now = Date.now();
+    
+    // استفاده از cache اگر هنوز معتبر است
+    if (authCache.isAuthenticated && authCache.currentUser && (now - authCache.lastCheck) < authCache.cacheTimeout) {
+        console.log('Using auth cache:', authCache.currentUser);
+        return true;
+    }
+    
     try {
-        const result = await chrome.storage.local.get(['isAuthenticated', 'currentUser']);
-        if (!result.isAuthenticated || !result.currentUser) {
+        // استفاده مستقیم از storage با Promise wrapper
+        const result = await getStorageData(['isAuthenticated', 'currentUser']);
+        
+        if (result.isAuthenticated && result.currentUser) {
+            // Update cache
+            authCache.isAuthenticated = true;
+            authCache.currentUser = result.currentUser;
+            authCache.lastCheck = now;
+            console.log('Authentication check passed:', result.currentUser);
+            return true;
+        } else {
+            authCache.isAuthenticated = false;
+            authCache.currentUser = null;
+            authCache.lastCheck = 0;
             showNotification('⚠️ لطفاً ابتدا وارد سیستم شوید. روی آیکون افزونه کلیک کنید و با نام کاربری و رمز عبور خود وارد شوید.', 'warning');
             return false;
         }
-        return true;
     } catch (error) {
         console.error('Auth check error:', error);
-        showNotification('⚠️ خطا در بررسی احراز هویت. لطفاً دوباره تلاش کنید.', 'error');
-        return false;
+        // Fallback: استفاده از message passing
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+            if (response && response.success && response.authenticated) {
+                authCache.isAuthenticated = true;
+                authCache.currentUser = response.user;
+                authCache.lastCheck = now;
+                console.log('Authentication check passed (message fallback):', response.user);
+                return true;
+            } else {
+                authCache.isAuthenticated = false;
+                authCache.currentUser = null;
+                authCache.lastCheck = 0;
+                showNotification('⚠️ لطفاً ابتدا وارد سیستم شوید. روی آیکون افزونه کلیک کنید و با نام کاربری و رمز عبور خود وارد شوید.', 'warning');
+                return false;
+            }
+        } catch (messageError) {
+            console.error('Message fallback error:', messageError);
+            authCache.isAuthenticated = false;
+            authCache.currentUser = null;
+            authCache.lastCheck = 0;
+            showNotification('⚠️ خطا در بررسی احراز هویت. لطفاً دوباره تلاش کنید.', 'error');
+            return false;
+        }
     }
 }
 

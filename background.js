@@ -9,18 +9,20 @@ async function loadConfig() {
     try {
         // ابتدا از storage بخوان
         const stored = await chrome.storage.local.get(['config']);
-        if (stored.config) {
+        if (stored.config && stored.config.models && stored.config.models.length > 0) {
             currentConfig = stored.config;
+            console.log('Config loaded from storage:', currentConfig);
             updateAPISettings();
             return;
         }
 
-        // اگر در storage نبود، از فایل بخوان
+        // اگر در storage نبود یا خالی بود، از فایل بخوان
         const response = await fetch(chrome.runtime.getURL('config.json'));
         currentConfig = await response.json();
         
         // ذخیره در storage
         await chrome.storage.local.set({ config: currentConfig });
+        console.log('Config loaded from file and saved to storage:', currentConfig);
         updateAPISettings();
     } catch (error) {
         console.error('Error loading config:', error);
@@ -87,6 +89,14 @@ async function updateAPISettings() {
 // بارگذاری اولیه
 loadConfig();
 
+// گوش دادن به تغییرات storage برای reload خودکار config
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.config) {
+        console.log('Config changed in storage, reloading...');
+        loadConfig();
+    }
+});
+
 // اعتبارسنجی payload
 function validatePayload(payload) {
     if (!payload) {
@@ -124,10 +134,47 @@ function validatePayload(payload) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    // بررسی احراز هویت
+    if (request.action === "checkAuth") {
+        (async () => {
+            try {
+                const result = await chrome.storage.local.get(['isAuthenticated', 'currentUser', 'isAdmin']);
+                const isAuth = result.isAuthenticated && result.currentUser;
+                sendResponse({ 
+                    success: true, 
+                    authenticated: isAuth,
+                    user: result.currentUser || null,
+                    isAdmin: result.isAdmin || false
+                });
+            } catch (error) {
+                console.error('Auth check error:', error);
+                sendResponse({ 
+                    success: false, 
+                    authenticated: false, 
+                    error: error.message 
+                });
+            }
+        })();
+        return true; // برای async response
+    }
+
     // مدیریت reload config
     if (request.action === "reloadConfig") {
-        loadConfig().then(() => {
-            sendResponse({ success: true, message: 'Config reloaded' });
+        // خواندن مستقیم از storage
+        chrome.storage.local.get(['config']).then((result) => {
+            if (result.config) {
+                currentConfig = result.config;
+                updateAPISettings();
+                console.log('Config reloaded from storage:', currentConfig);
+                sendResponse({ success: true, message: 'Config reloaded' });
+            } else {
+                // اگر در storage نبود، از فایل بخوان
+                loadConfig().then(() => {
+                    sendResponse({ success: true, message: 'Config reloaded from file' });
+                }).catch(err => {
+                    sendResponse({ success: false, error: err.message });
+                });
+            }
         }).catch(err => {
             sendResponse({ success: false, error: err.message });
         });
@@ -153,9 +200,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             return false;
         }
 
-        // پردازش با timeout
+        // پردازش با timeout (افزایش به 120 ثانیه)
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('زمان درخواست به پایان رسید')), 60000);
+            setTimeout(() => reject(new Error('زمان درخواست به پایان رسید (120 ثانیه)')), 120000);
+        });
+
+        console.log('Starting processText request:', {
+            mode: request.payload.mode,
+            textLength: request.payload.text?.length,
+            timestamp: new Date().toISOString()
         });
 
         Promise.race([
@@ -163,10 +216,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             timeoutPromise
         ])
         .then(result => {
+            console.log('processText success:', result);
             sendResponse({ success: true, data: result });
         })
         .catch(err => {
             console.error("Background Error:", err);
+            console.error("Error stack:", err.stack);
             const errorMessage = getErrorMessage(err);
             sendResponse({ success: false, error: errorMessage });
         });
@@ -191,9 +246,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             return false;
         }
 
-        // ساخت پاسخ با timeout
+        // ساخت پاسخ با timeout (افزایش به 120 ثانیه)
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('زمان درخواست به پایان رسید')), 60000);
+            setTimeout(() => reject(new Error('زمان درخواست به پایان رسید (120 ثانیه)')), 120000);
+        });
+
+        console.log('Starting generateReply request:', {
+            originalTextLength: request.payload.originalText?.length,
+            replyTextLength: request.payload.replyText?.length,
+            timestamp: new Date().toISOString()
         });
 
         Promise.race([
@@ -201,10 +262,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             timeoutPromise
         ])
         .then(result => {
+            console.log('generateReply success:', result);
             sendResponse({ success: true, data: result });
         })
         .catch(err => {
             console.error("Reply Generation Error:", err);
+            console.error("Error stack:", err.stack);
             const errorMessage = getErrorMessage(err);
             sendResponse({ success: false, error: errorMessage });
         });
@@ -347,7 +410,41 @@ async function processWithArvan(payload) {
         throw new Error('تنظیمات API یافت نشد. لطفاً در popup تنظیمات را بررسی کنید.');
     }
 
+    console.log('API Request Details:', {
+        endpoint: currentEndpoint.substring(0, 80) + '...',
+        apiKey: currentAPIKey.substring(0, 20) + '...',
+        modelName: currentModelName,
+        mode: payload.mode,
+        textLength: payload.text?.length
+    });
+
+    const requestBody = {
+        model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
+        messages: [
+            {"role": "system", "content": systemInstruction},
+            {"role": "user", "content": userContent}
+        ],
+        temperature: payload.mode === 'grammar' ? 0.1 : (payload.mode === 'smart' ? 0.6 : 0.5),
+        max_tokens: 3000
+    };
+
+    console.log('Request body:', {
+        model: requestBody.model,
+        messagesCount: requestBody.messages.length,
+        systemLength: requestBody.messages[0].content.length,
+        userLength: requestBody.messages[1].content.length,
+        temperature: requestBody.temperature,
+        max_tokens: requestBody.max_tokens
+    });
+
+    const startTime = Date.now();
     try {
+        console.log('Sending fetch request to:', currentEndpoint);
+        
+        // استفاده از AbortController برای timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 ثانیه
+        
         const response = await fetch(currentEndpoint, {
             method: 'POST',
             headers: {
@@ -355,33 +452,48 @@ async function processWithArvan(payload) {
                 'Authorization': currentAPIKey, 
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
-                messages: [
-                    {"role": "system", "content": systemInstruction},
-                    {"role": "user", "content": userContent}
-                ],
-                temperature: payload.mode === 'grammar' ? 0.1 : (payload.mode === 'smart' ? 0.6 : 0.5),
-                max_tokens: 3000
-            })
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        const fetchTime = Date.now() - startTime;
+        console.log(`Fetch completed in ${fetchTime}ms, status: ${response.status}`);
 
         if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.error('API Error Response:', errorText);
+            } catch (e) {
+                console.error('Could not read error response');
+            }
             const statusText = response.statusText || 'خطای نامشخص';
-            throw new Error(`خطای سرور (${response.status}): ${statusText}`);
+            throw new Error(`خطای سرور (${response.status}): ${statusText}. ${errorText.substring(0, 200)}`);
         }
 
         const data = await response.json();
+        console.log('API Response received:', {
+            hasChoices: !!data.choices,
+            choicesLength: data.choices?.length,
+            hasMessage: !!data.choices?.[0]?.message,
+            hasContent: !!data.choices?.[0]?.message?.content
+        });
         
         if (!data || !data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-            throw new Error('پاسخ معتبری از سرور دریافت نشد');
+            console.error('Invalid API response:', JSON.stringify(data).substring(0, 500));
+            throw new Error('پاسخ معتبری از سرور دریافت نشد. لطفاً endpoint و API key را بررسی کنید.');
         }
 
         const rawContent = data.choices[0]?.message?.content;
         
         if (!rawContent || rawContent.trim().length === 0) {
+            console.error('Empty content in response:', data);
             throw new Error('متن بازنویسی شده خالی است');
         }
+        
+        console.log('Content received, length:', rawContent.length);
         
         // اگر حالت نگارش یا هوشمند بود، باید پارس شود
         if (payload.mode === 'grammar' || payload.mode === 'smart') {
@@ -392,6 +504,13 @@ async function processWithArvan(payload) {
         }
     } catch (error) {
         console.error("ArvanCloud Error:", error);
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        
+        // اگر خطا از نوع AbortError باشد (timeout)
+        if (error.name === 'AbortError') {
+            throw new Error('زمان درخواست به پایان رسید (120 ثانیه). لطفاً دوباره تلاش کنید یا endpoint را بررسی کنید.');
+        }
         
         // اگر خطا از نوع fetch باشد (مشکل شبکه)
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -477,7 +596,32 @@ async function generateReply(payload) {
         throw new Error('تنظیمات API یافت نشد. لطفاً در popup تنظیمات را بررسی کنید.');
     }
 
+    console.log('GenerateReply API Request Details:', {
+        endpoint: currentEndpoint.substring(0, 80) + '...',
+        apiKey: currentAPIKey.substring(0, 20) + '...',
+        modelName: currentModelName,
+        originalTextLength: payload.originalText?.length,
+        replyTextLength: payload.replyText?.length
+    });
+
+    const requestBody = {
+        model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
+        messages: [
+            {"role": "system", "content": systemInstruction},
+            {"role": "user", "content": userContent}
+        ],
+        temperature: 0.6,
+        max_tokens: 3000
+    };
+
+    const startTime = Date.now();
     try {
+        console.log('Sending generateReply fetch request to:', currentEndpoint);
+        
+        // استفاده از AbortController برای timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 ثانیه
+        
         const response = await fetch(currentEndpoint, {
             method: 'POST',
             headers: {
@@ -485,29 +629,48 @@ async function generateReply(payload) {
                 'Authorization': currentAPIKey, 
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                model: currentModelName || "DeepSeek-R1-qwen-7b-awq",
-                messages: [
-                    {"role": "system", "content": systemInstruction},
-                    {"role": "user", "content": userContent}
-                ],
-                temperature: 0.6,
-                max_tokens: 3000
-            })
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        const fetchTime = Date.now() - startTime;
+        console.log(`GenerateReply fetch completed in ${fetchTime}ms, status: ${response.status}`);
 
         if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.error('GenerateReply API Error Response:', errorText);
+            } catch (e) {
+                console.error('Could not read error response');
+            }
             const statusText = response.statusText || 'خطای نامشخص';
-            throw new Error(`خطای سرور (${response.status}): ${statusText}`);
+            throw new Error(`خطای سرور (${response.status}): ${statusText}. ${errorText.substring(0, 200)}`);
         }
 
         const data = await response.json();
+        console.log('GenerateReply API Response received:', {
+            hasChoices: !!data.choices,
+            choicesLength: data.choices?.length,
+            hasMessage: !!data.choices?.[0]?.message,
+            hasContent: !!data.choices?.[0]?.message?.content
+        });
         
         if (!data || !data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-            throw new Error('پاسخ معتبری از سرور دریافت نشد');
+            console.error('Invalid GenerateReply API response:', JSON.stringify(data).substring(0, 500));
+            throw new Error('پاسخ معتبری از سرور دریافت نشد. لطفاً endpoint و API key را بررسی کنید.');
         }
 
         const rawContent = data.choices[0]?.message?.content;
+        
+        if (!rawContent || rawContent.trim().length === 0) {
+            console.error('Empty content in generateReply response:', data);
+            throw new Error('متن بازنویسی شده خالی است');
+        }
+        
+        console.log('GenerateReply content received, length:', rawContent.length);
         
         if (!rawContent || rawContent.trim().length === 0) {
             throw new Error('پاسخ ساخته شده خالی است');
@@ -520,6 +683,13 @@ async function generateReply(payload) {
         });
     } catch (error) {
         console.error("Reply Generation Error:", error);
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        
+        // اگر خطا از نوع AbortError باشد (timeout)
+        if (error.name === 'AbortError') {
+            throw new Error('زمان درخواست به پایان رسید (120 ثانیه). لطفاً دوباره تلاش کنید یا endpoint را بررسی کنید.');
+        }
         
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             throw new Error('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.');

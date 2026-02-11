@@ -10,14 +10,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUsers();
     checkAuth();
     setupEventListeners();
+    
+    // گوش دادن به تغییرات storage
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'local' && changes.config) {
+            console.log('Config changed in storage, reloading...');
+            config = changes.config.newValue;
+            if (isAdmin) {
+                loadAdminData();
+            } else {
+                loadUserData();
+            }
+        }
+    });
 });
 
-// خواندن فایل config.json
+// خواندن config از storage یا فایل
 async function loadConfig() {
     try {
+        // ابتدا از storage بخوان
+        const stored = await chrome.storage.local.get(['config']);
+        if (stored.config && stored.config.models && Array.isArray(stored.config.models) && stored.config.models.length > 0) {
+            config = stored.config;
+            console.log('Config loaded from storage:', config);
+            return;
+        }
+
+        // اگر در storage نبود یا خالی بود، از فایل بخوان
         const response = await fetch(chrome.runtime.getURL('config.json'));
         config = await response.json();
-        console.log('Config loaded:', config);
+        
+        // ذخیره در storage برای استفاده بعدی
+        await chrome.storage.local.set({ config: config });
+        console.log('Config loaded from file and saved to storage:', config);
     } catch (error) {
         console.error('Error loading config:', error);
         showError('خطا در بارگذاری فایل config.json');
@@ -178,7 +203,15 @@ function switchTab(tab) {
 
 // بارگذاری داده‌های Admin
 async function loadAdminData() {
-    if (!config) return;
+    // ابتدا از storage بخوان
+    const stored = await chrome.storage.local.get(['config']);
+    if (stored.config) {
+        config = stored.config;
+    }
+    
+    if (!config) {
+        await loadConfig();
+    }
 
     // بارگذاری API Settings
     document.getElementById('api-key').value = config.apiKey || '';
@@ -338,11 +371,23 @@ async function saveAPISettings() {
 
 // ذخیره config (ارسال به background.js)
 async function saveConfig() {
+    // اطمینان از اینکه config به‌روز است
+    if (!config) {
+        console.error('Config is null, cannot save');
+        return;
+    }
+    
     // ذخیره در storage
     await chrome.storage.local.set({ config: config });
+    console.log('Config saved to storage:', config);
     
     // اطلاع به background.js برای reload
-    chrome.runtime.sendMessage({ action: 'reloadConfig' });
+    try {
+        await chrome.runtime.sendMessage({ action: 'reloadConfig' });
+        console.log('Background notified of config change');
+    } catch (error) {
+        console.error('Error notifying background:', error);
+    }
 }
 
 // بارگذاری داده‌های کاربر
