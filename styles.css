@@ -1,14 +1,38 @@
 /* فونت‌بندی فارسی بهینه */
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
 
-/* فونت BKoodak برای متن‌ها */
-body, button, input, select, textarea, .mce-content-body {
-    font-family: 'BKoodakBd', 'Vazirmatn', 'B Koodak', 'Tahoma', sans-serif;
+/* فونت BKoodak برای کل سایت */
+body, 
+input, 
+select, 
+textarea, 
+.mce-content-body, 
+.mce-txt,
+span.mce-text,
+.mce-widget button,
+.ai-btn-text,
+.ai-modal-content,
+.ai-notification-text {
+    font-family: 'BKoodakBd', 'Vazirmatn', 'B Koodak', 'Tahoma', sans-serif !important;
 }
 
-/* جلوگیری از تغییر فونت آیکون‌ها */
-.mce-ico, .mce-i-none, [class^="mce-i-"], [class*=" mce-i-"] {
+/* جلوگیری اکید از تغییر فونت آیکون‌ها */
+.mce-ico, 
+.mce-i-none, 
+[class^="mce-i-"], 
+[class*=" mce-i-"], 
+i[class*="mce-i-"],
+.mce-caret,
+.mce-caret:after {
     font-family: 'tinymce', Arial, sans-serif !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+    speak: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ===== کانتینر اصلی نوار ابزار ===== */
